@@ -1,9 +1,6 @@
-package inputrebind;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import inputrebind.settings;
 
 public class AppFrame extends JFrame {
 
