@@ -3,27 +3,34 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.*;
 
 import java.awt.*;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
 
 import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.NativeHookException;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
+import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
+import com.github.kwhat.jnativehook.mouse.NativeMouseInputListener;
 
-public class RebindPanel extends JPanel implements NativeKeyListener{
+import java.awt.event.*;
+
+public class RebindPanel extends JPanel implements NativeKeyListener, NativeMouseInputListener{
 
     boolean listenBind;
     boolean listenReplace;
-    String Bind;
-    String Replace;
+    int Bind;
+    int Replace;
 
     JButton buttonBind;
     JButton buttonReplace;
 
-    public RebindPanel(){
+    boolean enable;
+    Robot robot;
+    int isKey;
+
+    public RebindPanel() throws AWTException{
+        robot = new Robot();
+        
         
         try {
             GlobalScreen.registerNativeHook();
@@ -33,6 +40,7 @@ public class RebindPanel extends JPanel implements NativeKeyListener{
         }
         
         GlobalScreen.addNativeKeyListener(this);
+        GlobalScreen.addNativeMouseListener(this);
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(settings.windowX, settings.windowY));
         setBackground(Color.DARK_GRAY);
@@ -57,6 +65,15 @@ public class RebindPanel extends JPanel implements NativeKeyListener{
         add(buttonReplace, BorderLayout.LINE_END);
 
         JCheckBox enabled = new JCheckBox("enable");
+        enabled.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // TODO Auto-generated method stub
+                enable = enabled.isSelected();
+            }
+
+        });
         add(enabled, BorderLayout.CENTER);
         setVisible(true);
 
@@ -65,16 +82,86 @@ public class RebindPanel extends JPanel implements NativeKeyListener{
 
     public void nativeKeyPressed(NativeKeyEvent e) {
         if(listenBind){
-            Bind = NativeKeyEvent.getKeyText(e.getKeyCode());
-            buttonBind.setText(Bind);
+            Bind = e.getKeyCode();
+            buttonBind.setText(NativeKeyEvent.getKeyText(Bind));
             listenBind = false;
+
         }
         if(listenReplace){
-            Replace = NativeKeyEvent.getKeyText(e.getKeyCode());
-            buttonReplace.setText(Replace);
+            isKey = 1;
+            Replace = (e.getKeyCode());
+            buttonReplace.setText(String.valueOf(Replace));
             listenReplace = false;
         }
-        System.out.println(NativeKeyEvent.getKeyText(e.getKeyCode()));
+        if (enable){
+            if(e.getKeyCode() == Bind){
+                if(isKey == 1){
+                    robot.keyPress(Replace);
+                }
+                else if (isKey == 2){
+                    robot.mousePress(Replace);
+                }
+            }
+        }
+            System.out.println(NativeKeyEvent.getKeyText(e.getKeyCode()));
+            
+        
         
     }
+
+	public void nativeMousePressed(NativeMouseEvent e) {
+        if(listenBind){
+            Bind =  e.getButton();
+            buttonBind.setText("Mouse "+e.getButton());
+            listenBind = false;
+
+        }
+        if(listenReplace){
+            isKey = 2;
+            Replace = InputEvent.getMaskForButton(e.getButton());
+            buttonReplace.setText("Mouse "+e.getButton());
+            listenReplace = false;
+        }
+
+        if (enable){
+            if(e.getButton() == Bind){
+                System.out.println("isKey+ "+ isKey);
+                if(isKey == 1){
+                    robot.keyPress(Replace);
+                }
+                else if (isKey == 2){
+                    robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+                }
+            }
+        }
+        
+                    System.out.println("Mouse"+e.getButton());
+	}
+
+	public void nativeMouseReleased(NativeMouseEvent e) {
+        if (enable){
+            if(e.getButton() == Bind){
+                if(isKey == 1){
+                    robot.keyPress(Replace);
+                    }
+                    else if (isKey == 2){
+                        robot.mouseRelease(Replace);
+                    }
+            }
+        }
+	}
+
+    public void nativeKeyRelease(NativeKeyEvent e){
+        if (enable){
+            if(e.getKeyCode() == Bind){
+                if(isKey == 1){
+                    robot.keyRelease(Replace);
+                    }
+                    else if (isKey == 2){
+                        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+                    }
+            }
+        }
+    }
+
 }

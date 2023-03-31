@@ -20,7 +20,12 @@ public class AppFrame extends JFrame {
         JButton button = new JButton("+ Bind");
         button.addActionListener(new ActionListener(){  
             public void actionPerformed(ActionEvent e){  
-                addRebind();
+                try {
+                    addRebind();
+                } catch (AWTException e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
                     }  
                 });  
         JButton button2 = new JButton("- Bind");
@@ -43,7 +48,7 @@ public class AppFrame extends JFrame {
         setLocationRelativeTo(null);
         setVisible(true);
     }
-    public void addRebind(){
+    public void addRebind() throws AWTException{
         RebindPanel rebind = new RebindPanel();
         Tabbed.addTab("Rebind", rebind);
         tabIndex++;
